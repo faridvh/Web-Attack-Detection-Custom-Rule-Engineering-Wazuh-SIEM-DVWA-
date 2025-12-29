@@ -1,0 +1,193 @@
+<!-- Local rules -->
+
+<!-- Modify it at your will. -->
+<!-- Copyright (C) 2015, Wazuh Inc. -->
+
+<!-- Example -->
+<group name="local,syslog,sshd,">
+
+  <!--
+  Dec 10 01:02:02 host sshd[1234]: Failed none for root from 1.1.1.1 port 1066 ssh2
+  -->
+  <rule id="100001" level="5">
+    <if_sid>5716</if_sid>
+    <srcip>1.1.1.1</srcip>
+    <description>sshd: authentication failed from IP 1.1.1.1.</description>
+    <group>authentication_failed,pci_dss_10.2.4,pci_dss_10.2.5,</group>
+  </rule>
+
+  <rule id="100050" level="5">
+    <decoded_as>web-accesslog</decoded_as>
+    <match>dvwa</match>
+    <description>DVWA Access Log - Match Rule</description>
+    <group>web,dvwa</group>
+  </rule>
+
+</group>
+
+<group name="web,accesslog,dvwa_comprehensive_sqli,">
+
+  <rule id="100401" level="12">
+    <if_sid>31106</if_sid>
+    <regex type="pcre2" case_sensitive="no">(union[\s\+\/\*]+(all[\s\+\/\*]+)?select|[\s\+\/\*]+\/\*![\s\+\/\*]+select)</regex>
+    <description>SQLi High: UNION SELECT with Comment/Whitespace Evasion</description>
+    <mitre><id>T1190</id></mitre>
+  </rule>
+
+  <rule id="100402" level="12">
+    <if_group>web</if_group>
+    <regex type="pcre2" case_sensitive="no">('|\%27|\")\s*(\/\*.*?\*\/)?\s*(or|and|\|\||&&)\s*(\/\*.*?\*\/)?\s*('|\%27|\")?(\d+=\d+|[a-z]+=[a-z]+)</regex>
+    <description>SQLi High: Boolean Logic and Tautology Attack</description>
+    <mitre><id>T1190</id></mitre>
+  </rule>
+
+  <rule id="100403" level="12">
+    <if_group>web</if_group>
+    <regex type="pcre2" case_sensitive="no">(extractvalue|updatexml|floor\(rand\s*\(0\)\)|exp\s*\(\s*~0\s*\))</regex>
+    <description>SQLi High: Error-Based Injection Attempt (XPATH/Mathematical)</description>
+    <mitre><id>T1190</id></mitre>
+  </rule>
+
+  <rule id="100404" level="12">
+    <if_group>web</if_group>
+    <regex type="pcre2" case_sensitive="no">(sleep\s*\(\s*\d+\s*\)|benchmark\s*\(|waitfor\s+delay|pg_sleep|if\s*\(|case\s+when)</regex>
+    <description>SQLi High: Time-Based or Complex Blind Injection</description>
+    <mitre><id>T1190</id></mitre>
+  </rule>
+
+  <rule id="100405" level="12">
+    <if_group>web</if_group>
+    <regex type="pcre2" case_sensitive="no">(xp_cmdshell|exec\s+sp_|utl_http|utl_inaddr|load_file\s*\(|host_name\s*\()</regex>
+    <description>SQLi High: Command Execution or Out-of-Band Attack</description>
+    <mitre><id>T1190</id></mitre>
+  </rule>
+
+  <rule id="100406" level="12">
+    <if_group>web</if_group>
+    <regex type="pcre2" case_sensitive="no">(information_schema|group_concat|user\s*\(\)|database\s*\(\)|@@version|0x[0-9a-f]+|table_name|column_name)</regex>
+    <description>SQLi High: System Information/Schema Extraction (Fingerprinting)</description>
+    <mitre><id>T1190</id></mitre>
+  </rule>
+
+  <rule id="100407" level="12">
+    <if_group>web</if_group>
+    <regex type="pcre2" case_sensitive="no">(insert\s+into|update\s+set|delete\s+from|drop\s+table|truncate\s+table|alter\s+table)</regex>
+    <description>SQLi High: Data Manipulation Language (DML) Command</description>
+    <mitre><id>T1190</id></mitre>
+  </rule>
+
+  <rule id="100408" level="12">
+    <if_group>web</if_group>
+    <regex type="pcre2" case_sensitive="no">(concat\s*\(|char\s*\(|ascii\s*\(|cast\s*\(|convert\s*\(|substr\s*\(|mid\s*\(|substring\s*\()</regex>
+    <description>SQLi High: Data Encoding and String Manipulation Functions</description>
+    <mitre><id>T1190</id></mitre>
+  </rule>
+
+  <rule id="100409" level="12">
+    <if_group>web</if_group>
+    <regex type="pcre2">--\s+|\%00|\%2D\%2D\+|\/\*!\d+</regex>
+    <description>SQLi High: Comment, Terminator, and Null Byte Evasion</description>
+    <mitre><id>T1190</id></mitre>
+  </rule>
+
+  <rule id="100410" level="12">
+    <if_group>web</if_group>
+    <regex type="pcre2" case_sensitive="no">('|\%27|\"|\%22)[\s\+\/\*]+(or|and|union|select|\|\||&&)[\s\+\/\*]+</regex>
+    <description>SQLi High: Suspicious Quotes followed by SQL Logic</description>
+    <mitre><id>T1190</id></mitre>
+  </rule>
+</group>
+
+<group name="web,app,attack,xss,">
+
+  <rule id="100201" level="12">
+    <if_group>web</if_group>
+    <regex type="pcre2">(?i)(%3C|&lt;)script</regex>
+    <description>XSS: Script tag character sequence detected in request</description>
+    <mitre>
+      <id>T1059.007</id>
+    </mitre>
+  </rule>
+
+  <rule id="100202" level="12">
+    <if_group>web</if_group>
+    <regex type="pcre2">(?i)javascript\s*:</regex>
+    <description>XSS: 'javascript:' pseudo-protocol detected</description>
+    <mitre>
+      <id>T1059.007</id>
+    </mitre>
+  </rule>
+
+  <rule id="100203" level="12">
+    <if_group>web</if_group>
+    <regex type="pcre2">(?i)on(load|error|click|mouseover|focus|blur|change|submit|dblclick|contextmenu|readystatechange|mouseenter|mouseleave)\s*=</regex>
+    <description>XSS: Dangerous HTML event handler detected (e.g., onload, onerror)</description>
+    <mitre>
+      <id>T1059.007</id>
+    </mitre>
+  </rule>
+
+  <rule id="100204" level="10">
+    <if_group>web</if_group>
+    <regex type="pcre2">(?i)(alert|confirm|prompt|eval)\s*(\(|%28)</regex>
+    <description>XSS: Suspicious JavaScript function call (alert/confirm/eval)</description>
+    <mitre>
+      <id>T1059.007</id>
+    </mitre>
+  </rule>
+
+  <rule id="100205" level="11">
+    <if_group>web</if_group>
+    <regex type="pcre2">(?i)(%3C|&lt;)(iframe|object|embed|body|layer|style|meta)</regex>
+    <description>XSS: Potentially dangerous HTML tag injection (iframe/object/embed)</description>
+    <mitre>
+      <id>T1059.007</id>
+    </mitre>
+  </rule>
+
+  <rule id="100206" level="11">
+    <if_group>web</if_group>
+    <regex type="pcre2">(?i)(%3C|&lt;)(svg|xml|math)</regex>
+    <description>XSS: SVG/XML/Math tag injection attempt</description>
+    <mitre>
+      <id>T1059.007</id>
+    </mitre>
+  </rule>
+
+  <rule id="100207" level="12">
+    <if_group>web</if_group>
+    <regex type="pcre2">(?i)data:(text\/html|application\/x-javascript);base64</regex>
+    <description>XSS: Malicious Data URI scheme detected</description>
+    <mitre>
+      <id>T1059.007</id>
+    </mitre>
+  </rule>
+
+  <rule id="100208" level="13">
+    <if_group>web</if_group>
+    <regex type="pcre2">(?i)document\.(cookie|location|domain)</regex>
+    <description>XSS: Attempt to access sensitive document objects (Cookie/Location)</description>
+    <mitre>
+      <id>T1059.007</id>
+    </mitre>
+  </rule>
+
+  <rule id="100209" level="10">
+    <if_group>web</if_group>
+    <regex type="pcre2">(?i)expression\s*\(|style\s*=\s*[\"'].*javascript:</regex>
+    <description>XSS: CSS Expression or Style injection detected</description>
+    <mitre>
+      <id>T1059.007</id>
+    </mitre>
+  </rule>
+
+  <rule id="100210" level="14" frequency="4" timeframe="60">
+    <if_matched_sid>100201,100202,100203,100204,100205,100206,100207,100208,100209</if_matched_sid>
+    <same_source_ip />
+    <description>Critical: High frequency XSS attack scan detected from $(srcip)</description>
+    <mitre>
+      <id>T1059.007</id>
+    </mitre>
+  </rule>
+
+</group>
