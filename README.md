@@ -20,6 +20,6 @@ Detection Engineering: Developed custom XML decoders and rules specifically tail
 Incident Analysis: Configured the Wazuh Dashboard for real-time alerting and incident visualization to facilitate rapid response.
 
 📁 Repository Structure
-/rules: Contains the customized XML rulesets and decoders developed during the project.
 
+/rules: Contains the customized XML rulesets and decoders developed during the project.
 /docs: Includes the network topology diagrams and screenshots of the Wazuh alerts triggered during simulations.
