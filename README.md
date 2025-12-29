@@ -22,5 +22,4 @@ Incident Analysis: Configured the Wazuh Dashboard for real-time alerting and inc
 📁 Repository Structure
 
 /rules: Contains the customized XML rulesets and decoders developed during the project.
-
 /docs: Includes the network topology diagrams and screenshots of the Wazuh alerts triggered during simulations.
